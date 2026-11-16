@@ -60,16 +60,28 @@ module or smart-plug / dimmer hardware rated for it.
 
 ## How well it works
 
-Trained in Edge Impulse on Google Speech Commands (thousands of real
-speakers, CC BY 4.0) plus synthetic voices for "turn on", "turn off",
-"open" and "close", with `noise` and `unknown` classes.
+Trained in Edge Impulse on 11,200 one-second clips: Google Speech Commands
+v0.02 (thousands of real speakers, CC BY 4.0) plus 2,368 synthetic clips from
+30 macOS voices for "turn on", "turn off", "open" and "close", with `noise`
+and `unknown` classes. Test speakers and voices never appear in training.
 
 | Metric | Value |
 |---|---|
-| Accuracy on unseen speakers, all 28 classes | 74% (2,240 test clips) |
+| Accuracy on unseen speakers, all 28 classes | 74% (73.7%, 2,240 test clips) |
 | turn on / turn off / open / close (unseen voices) | 83% / 86% / 80% / 73% |
-| When acting only on confident, averaged predictions | right ~91% of the time |
-| On the ESP32 | 12 ms per inference, 22 KB RAM, 72 KB flash |
+| Precision when it acts (averaged windows, 44% threshold) | 92% |
+| False triggers on background noise | 0% |
+| False triggers on unknown words | 22.5% (the weakest spot; see below) |
+| Wrong command triggered | 4.1% of command clips |
+| Firmware (ESP32, Arduino core 2.0.17) | 461,233 B flash (35%), 31,144 B global RAM (9%) |
+| Inference on the ESP32 (Edge Impulse estimate) | ~12 ms, 22 KB RAM, 72 KB model flash |
+| Browser build | 119 KB of WebAssembly, ~8 ms per word |
+
+The false-trigger and precision numbers come from running the WebAssembly
+build of the same model over all 2,240 test clips with the demo's rule
+(9 shifted windows, act at 44% or above). The firmware size is from
+`arduino-cli compile`. The 12 ms and 22 KB figures are Edge Impulse's profiler
+estimate for the ESP32 and were not timed on the board.
 
 ## An accuracy fix found while testing
 
